@@ -6,8 +6,11 @@
 
 #include "basicfuncs.h"
 
-template<class T>
-double norm(T v)
+double norm(double* v)
+{
+	return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+}
+double norm(vector<double> v)
 {
 	return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 }
@@ -27,8 +30,29 @@ void standardizeVector(double* V_, int n)
 	}
 }
 
-template<class T1, class T2>
-double dot(T1 v1, T2 v2)
+double dot(double* v1, double* v2)
+{
+	double val = 0;
+
+	for (int i = 0; i < 3; i++)
+	{
+		val += v1[i] * v2[i];
+	}
+
+	return val;
+}
+double dot(vector<double> v1, vector<double> v2)
+{
+	double val = 0;
+
+	for (int i = 0; i < 3; i++)
+	{
+		val += v1[i] * v2[i];
+	}
+
+	return val;
+}
+double dot(double* v1, vector<double> v2)
 {
 	double val = 0;
 
@@ -54,16 +78,38 @@ void getRow(double* V_, int nn_, std::vector<double>& v, int idx)
 	v[2] = V_[idx + nn_ * 2];
 }
 
-template<class T1, class T2>
-void cross(T1 v1, T2 v2, double* v)
+void cross(double* v1, double* v2, double* v)
+{
+	v[0] = v1[1] * v2[2] - v1[2] * v2[1];
+	v[1] = v1[2] * v2[0] - v1[0] * v2[2];
+	v[2] = v1[0] * v2[1] - v1[1] * v2[0];
+}
+void cross(vector<double> v1, vector<double> v2, double* v)
+{
+	v[0] = v1[1] * v2[2] - v1[2] * v2[1];
+	v[1] = v1[2] * v2[0] - v1[0] * v2[2];
+	v[2] = v1[0] * v2[1] - v1[1] * v2[0];
+}
+void cross(double* v1, vector<double> v2, double* v)
+{
+	v[0] = v1[1] * v2[2] - v1[2] * v2[1];
+	v[1] = v1[2] * v2[0] - v1[0] * v2[2];
+	v[2] = v1[0] * v2[1] - v1[1] * v2[0];
+}
+void cross(vector<double> v1, double* v2, double* v)
 {
 	v[0] = v1[1] * v2[2] - v1[2] * v2[1];
 	v[1] = v1[2] * v2[0] - v1[0] * v2[2];
 	v[2] = v1[0] * v2[1] - v1[1] * v2[0];
 }
 
-template<class T1, class T2>
-void minus_(T1 v1, T2 v2, double* v)
+void minus_(double* v1, double* v2, double* v)
+{
+	v[0] = v1[0] - v2[0];
+	v[1] = v1[1] - v2[1];
+	v[2] = v1[2] - v2[2];
+}
+void minus_(vector<double> v1, vector<double> v2, double* v)
 {
 	v[0] = v1[0] - v2[0];
 	v[1] = v1[1] - v2[1];
