@@ -39,72 +39,97 @@ int		Pair_[TRIPLE_NUM_UNIT][2];
 
 __int64 numTriple_;
 __int64 numPair_;
+__int64 countVolume;
 
 unsigned char* bpair_;
 vector<float> thrpt(3);
 
-char	fnametri[256];
+char	fnametri[256], fnamepts[256];
 
 void calculate_volumes(double* C_, double* R, double* N_);
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	if (nrhs != 3) {
-		mexErrMsgIdAndTxt("intersectionVolumesOfCirclePlanes3D:Input",
-			"Three inputs required.");
+	if (nrhs != 6) {
+		mexErrMsgIdAndTxt("volumesOfIntersectingCircles3D:Input",
+			"Six inputs are required.");
 	}
 
 	// centers of circles
 	if (!mxIsDouble(prhs[0]) || mxIsComplex(prhs[0]))
 	{
-		mexErrMsgIdAndTxt("intersectionVolumesOfCirclePlanes3D:Input",
+		mexErrMsgIdAndTxt("volumesOfIntersectingCircles3D:Input",
 			"The matrix of centers of circles must be type double.");
 	}
 	if (mxGetN(prhs[0]) != 3)
 	{
-		mexErrMsgIdAndTxt("intersectionVolumesOfCirclePlanes3D:Input",
+		mexErrMsgIdAndTxt("volumesOfIntersectingCircles3D:Input",
 			"The matrix of centers of circles must have three columes.");
 	}
 
 	// radii of circles
 	if (!mxIsDouble(prhs[1]) || mxIsComplex(prhs[1]))
 	{
-		mexErrMsgIdAndTxt("intersectionVolumesOfCirclePlanes3D:Input",
+		mexErrMsgIdAndTxt("volumesOfIntersectingCircles3D:Input",
 			"The matrix of radii of circles must be type double.");
 	}
 	if (mxGetN(prhs[1]) != 1 && mxGetM(prhs[1]) != 1)
 	{
-		mexErrMsgIdAndTxt("intersectionVolumesOfCirclePlanes3D:Input",
+		mexErrMsgIdAndTxt("volumesOfIntersectingCircles3D:Input",
 			"The matrix of radii of circles must be a vector.");
 	}
 
 	// normal vectors of circles
 	if (!mxIsDouble(prhs[2]) || mxIsComplex(prhs[2]))
 	{
-		mexErrMsgIdAndTxt("intersectionVolumesOfCirclePlanes3D:Input",
+		mexErrMsgIdAndTxt("volumesOfIntersectingCircles3D:Input",
 			"The matrix of normal vectors of circles must be type double.");
 	}
 	if (mxGetN(prhs[2]) != 3)
 	{
-		mexErrMsgIdAndTxt("intersectionVolumesOfCirclePlanes3D:Input",
+		mexErrMsgIdAndTxt("volumesOfIntersectingCircles3D:Input",
 			"The matrix of normal vectors of circles must have three columes.");
 	}
 
 	if ( mxGetM(prhs[0]) != mxGetM(prhs[2]) ||
 		(mxGetM(prhs[0]) != mxGetM(prhs[1]) && mxGetM(prhs[0]) != mxGetN(prhs[1])))
 	{
-		mexErrMsgIdAndTxt("intersectionVolumesOfCirclePlanes3D:Input",
+		mexErrMsgIdAndTxt("volumesOfIntersectingCircles3D:Input",
 			"The lengths of all inputs must be same.");
 	}
 
 	C_ = mxGetPr(prhs[0]);
-	R  = mxGetPr(prhs[1]);
+	R = mxGetPr(prhs[1]);
 	N_ = mxGetPr(prhs[2]);
 	nn_ = (int)mxGetM(prhs[0]);
 
-	bpair_ = (unsigned char*)malloc(nn_*(nn_ / 8 + 1));
+	// pair information of interseting circles
+	if (!mxIsClass(prhs[3], "uint8") || mxIsComplex(prhs[3]))
+	{
+		mexErrMsgIdAndTxt("volumesOfIntersectingCircles3D:Input",
+			"The matrix of pair information of interseting circles must be type uint8.");
+	}
+	if (mxGetN(prhs[3]) != nn_)
+	{
+		mexErrMsgIdAndTxt("volumesOfIntersectingCircles3D:Input",
+			"The number of columns of pair matrix must be the same as the number of circles.");
+	}
 
-	sprintf(fnametri, "%s", "triples.dat");
+	bpair_ = (unsigned char*)mxGetData(prhs[3]);
+
+	// file (path) name to triples information
+	if (!mxIsChar(prhs[4]) || mxGetM(prhs[4]) != 1) {
+		mexErrMsgIdAndTxt("volumesOfIntersectingCircles3D:Input",
+			"String(filepath to triples info) is requried.");
+	}
+	mxGetString(prhs[4], fnametri, mxGetN(prhs[4]) + 1);
+
+	// file (path) name to cross points information
+	if (!mxIsChar(prhs[5]) || mxGetM(prhs[5]) != 1) {
+		mexErrMsgIdAndTxt("volumesOfIntersectingCircles3D:Input",
+			"String(filepath to cross points info) is requried.");
+	}
+	mxGetString(prhs[5], fnamepts, mxGetN(prhs[5]) + 1);
 
 	time_t t1, t2;
 
@@ -114,7 +139,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	time(&t2);
 	printf("Time calculating volumes = %d\n", t2 - t1);
 
-	free(bpair_);
+	// output
+	mwSize dims[2];
+	dims[0] = 1; dims[1] = 1;
+	plhs[0] = mxCreateNumericArray(2, dims, mxINT64_CLASS, mxREAL);
+	//plhs[0] = mxCreateDoubleScalar((double)countVolume);
 }
 
 bool isnecessarypoint(int j1, int j2, int j3)
@@ -1880,7 +1909,7 @@ bool plug_holes(vector<vector<int> >& vertextri, vector<vector<double> >& vertex
 
 void calculate_volumes(double* C_, double* R, double* N_)
 {
-	if (numTriple_ < 4) return;
+	//if (numTriple_ < 4) return;
 
 	int i, k, m;
 	int j1, j2, j3, jj1, jj2;
@@ -1900,17 +1929,16 @@ void calculate_volumes(double* C_, double* R, double* N_)
 	vector<double> vpt(3);
 	vector<int> cirpatchflag;
 
-	__int64 countVolume = 0;
+	countVolume = 0;
 
 	thrpt[0] = -1.0e13; thrpt[1] = -1.0e13; thrpt[2] = -1.0e13;
 
 	// open triple data to read
 	ifstream fcrosspts;
-	char fnamecrosspts[256];
-	sprintf(fnamecrosspts, "%s", "crosspts.dat");
-	fcrosspts.open(fnamecrosspts, ios_base::in | ios_base::binary);
+	sprintf(fnamepts, "%s", "crosspts.dat");
+	fcrosspts.open(fnamepts, ios_base::in | ios_base::binary);
 	if (fcrosspts.bad()) {
-		printf("The file %s was not opened.\n", fnamecrosspts);
+		printf("The file %s was not opened.\n", fnamepts);
 		return;
 	}
 
@@ -1921,6 +1949,9 @@ void calculate_volumes(double* C_, double* R, double* N_)
 		printf("The file %s was not opened.\n", fnametri);
 		return;
 	}
+	ftriples.seekg(0, ios_base::end);
+	numTriple_ = ftriples.tellg() / (sizeof(int) * 3);
+	ftriples.seekg(0, ios_base::beg);
 
 	int cnttrip = numTriple_ < TRIPLE_NUM_UNIT ? (int)numTriple_ : TRIPLE_NUM_UNIT;
 	int cntgroup = (int)((numTriple_ - 1) / cnttrip + 1);
