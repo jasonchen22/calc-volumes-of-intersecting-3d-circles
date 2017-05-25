@@ -26,5 +26,7 @@ N1 = N1 ./ repmat(sqrt(dot(N1,N1,2)),1,3);
 C = C1(idx,:);
 N = N1(idx,:);
 
-bPair = crossPointsOfCircles3D(C, R, N);
+[bPair, ftriname] = crossPointsOfCircles3D(C, R, N);
+
+volcnt = volumesOfIntersectingCircles3D(C, R, N, bPair, ftriname);
 
