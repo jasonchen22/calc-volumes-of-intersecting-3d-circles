@@ -35,7 +35,6 @@ double *C_, *R, *N_;
 int		nn_;
 int		Triple[TRIPLE_NUM_UNIT][3];
 int		Triple1[TRIPLE_NUM_UNIT][3];
-int		Pair_[TRIPLE_NUM_UNIT][2];
 
 __int64 numTriple_;
 __int64 numPair_;
@@ -43,7 +42,7 @@ __int64 numPair_;
 unsigned char* bpair_;
 vector<float> thrpt(3);
 
-char	fnametri[256];
+char	fnametri[256], fnamepts[256];
 
 void intersect_triples(double* C_, double* R, double* N_);
 void remove_unnecessaryInfo();
@@ -52,50 +51,50 @@ void sort_crosspoints(double* C_, double* R, double* N_);
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 	if (nrhs != 3) {
-		mexErrMsgIdAndTxt("intersectionVolumesOfCirclePlanes3D:Input",
-			"Three inputs required.");
+		mexErrMsgIdAndTxt("crossPointsOfCircles3D:Input",
+			"Three inputs are required.");
 	}
 
 	// centers of circles
 	if (!mxIsDouble(prhs[0]) || mxIsComplex(prhs[0]))
 	{
-		mexErrMsgIdAndTxt("intersectionVolumesOfCirclePlanes3D:Input",
+		mexErrMsgIdAndTxt("crossPointsOfCircles3D:Input",
 			"The matrix of centers of circles must be type double.");
 	}
 	if (mxGetN(prhs[0]) != 3)
 	{
-		mexErrMsgIdAndTxt("intersectionVolumesOfCirclePlanes3D:Input",
+		mexErrMsgIdAndTxt("crossPointsOfCircles3D:Input",
 			"The matrix of centers of circles must have three columes.");
 	}
 
 	// radii of circles
 	if (!mxIsDouble(prhs[1]) || mxIsComplex(prhs[1]))
 	{
-		mexErrMsgIdAndTxt("intersectionVolumesOfCirclePlanes3D:Input",
+		mexErrMsgIdAndTxt("crossPointsOfCircles3D:Input",
 			"The matrix of radii of circles must be type double.");
 	}
 	if (mxGetN(prhs[1]) != 1 && mxGetM(prhs[1]) != 1)
 	{
-		mexErrMsgIdAndTxt("intersectionVolumesOfCirclePlanes3D:Input",
+		mexErrMsgIdAndTxt("crossPointsOfCircles3D:Input",
 			"The matrix of radii of circles must be a vector.");
 	}
 
 	// normal vectors of circles
 	if (!mxIsDouble(prhs[2]) || mxIsComplex(prhs[2]))
 	{
-		mexErrMsgIdAndTxt("intersectionVolumesOfCirclePlanes3D:Input",
+		mexErrMsgIdAndTxt("crossPointsOfCircles3D:Input",
 			"The matrix of normal vectors of circles must be type double.");
 	}
 	if (mxGetN(prhs[2]) != 3)
 	{
-		mexErrMsgIdAndTxt("intersectionVolumesOfCirclePlanes3D:Input",
+		mexErrMsgIdAndTxt("crossPointsOfCircles3D:Input",
 			"The matrix of normal vectors of circles must have three columes.");
 	}
 
 	if ( mxGetM(prhs[0]) != mxGetM(prhs[2]) ||
 		(mxGetM(prhs[0]) != mxGetM(prhs[1]) && mxGetM(prhs[0]) != mxGetN(prhs[1])))
 	{
-		mexErrMsgIdAndTxt("intersectionVolumesOfCirclePlanes3D:Input",
+		mexErrMsgIdAndTxt("crossPointsOfCircles3D:Input",
 			"The lengths of all inputs must be same.");
 	}
 
@@ -107,6 +106,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	bpair_ = (unsigned char*)malloc(nn_*(nn_ / 8 + 1));
 
 	sprintf(fnametri, "%s", "triples.dat");
+	sprintf(fnamepts, "%s", "crosspts.dat");
 
 	time_t t1, t2;
 
@@ -136,8 +136,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	// associate outputs
 	plhs[0] = mxCreateNumericMatrix(nn_ / 8 + 1, nn_, mxUINT8_CLASS, mxREAL);
 	plhs[1] = mxCreateString(fnametri);
+	plhs[2] = mxCreateString(fnamepts);
 
-	memcpy(mxGetPr(plhs[0]), bpair_, nn_*(nn_ / 8 + 1));
+	memcpy(mxGetData(plhs[0]), bpair_, nn_*(nn_ / 8 + 1));
 
 	free(bpair_);
 }
@@ -324,7 +325,7 @@ void remove_unnecessaryInfo()
 	if (numTriple_ < 4) return;
 
 	ifstream ftriples;
-	ofstream ftriples1, fpairs;
+	ofstream ftriples1;
 
 	char fnametri0[256], fnametri1[256];
 	sprintf(fnametri0, "%s", fnametri);
@@ -421,7 +422,6 @@ void remove_unnecessaryInfo()
 	free(bpair1);
 	free(bpair2);
 
-	cntpair = 0;
 	numPair_ = 0;
 	for (j1 = 0; j1 < nn_ - 1; j1++) {
 		for (j2 = j1 + 1; j2 < nn_; j2++)
@@ -432,16 +432,9 @@ void remove_unnecessaryInfo()
 			m = j2*(nn_ / 8 + 1) + j1 / 8;
 			bpair_[m] |= 1 << (j1 % 8);
 
-			Pair_[cntpair][0] = j1; Pair_[cntpair][1] = j2;
-			cntpair++; numPair_++;
-			if (cntpair >= TRIPLE_NUM_UNIT) {
-				fpairs.write((char*)&Pair_[0][0], sizeof(int) * 2 * cntpair);
-				cntpair = 0;
-			}
+			numPair_++;
 		}
 	}
-	fpairs.write((char*)&Pair_[0][0], sizeof(int) * 2 * cntpair);
-	fpairs.close();
 
 	if (fnametri1[strlen(fnametri1) - 1] != 'm') {
 		sprintf(fnametri1, "%s", fnametri0);
@@ -554,11 +547,10 @@ void sort_crosspoints(double* C_, double* R, double* N_)
 	ftriples.close();
 
 	ofstream fcrosspts;
-	char fnamecrosspts[256];
-	sprintf(fnamecrosspts, "%s", "crosspts.dat");
-	fcrosspts.open(fnamecrosspts, ios_base::out | ios_base::binary | ios_base::trunc);
+	sprintf(fnamepts, "%s", "crosspts.dat");
+	fcrosspts.open(fnamepts, ios_base::out | ios_base::binary | ios_base::trunc);
 	if (fcrosspts.bad()) {
-		printf("The file %s was not opened.\n", fnamecrosspts);
+		printf("The file %s was not opened.\n", fnamepts);
 		return;
 	}
 
