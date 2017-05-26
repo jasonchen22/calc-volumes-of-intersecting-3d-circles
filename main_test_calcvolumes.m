@@ -3,13 +3,14 @@
 
 addpath('testutils');
 
-load('matlab100.mat');
+load('matlab.mat');
 
 % calculate cross points of circles
 [bPair, ftriname, fptsname] = crossPointsOfCircles3D(C, R, N);
 
 volcnt = volumesOfIntersectingCircles3D(C, R, N, bPair, ftriname, fptsname);
 
+return;
 % display results
 if (n_ > 1000), return; end
 
