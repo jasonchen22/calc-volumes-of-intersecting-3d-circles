@@ -574,10 +574,8 @@ int insert_polyhedron_info(int jprincir, int jcir1, int jcir2, double *p,
 	vector<int> jj;
 
 	if (jjs.size() == 0) return 0;
-	//if (jj1 < 0 && jj2 < 0) return 0;
 	if (cirpatchflag[jprincir] < 0) return 0; // the case that direction of patch isn't determined yet
 
-	//if (jj1 > -1 && jj2 > -1) {
 	if (jjs.size() > 1) {
 		bool bdetermined = false;
 		k = cirpatchflag[jprincir] - 1;
@@ -1871,16 +1869,6 @@ int get_closed_patch(int ipat)
 	int j1, j2, j3, jj1, jj2;
 	double p[3], pp1[3], pp2[3], *pp;
 
-	if (cirpatchflag[jcirclePatch[ipat]] <= 0) {
-		if (!determine_patch_direction(ipat))
-		{
-			remove_patch(ipat);
-			return 1;
-		}
-	}
-
-	polyhedron_info_real2temp(true);
-
 	int iv, iv1;
 	vector<vector<int> > jjs;
 	vector<int> jj(2);
@@ -1947,7 +1935,7 @@ int get_closed_patch(int ipat)
 			}
 		}
 
-		if (jjs.size() == 0) return 0;
+		if (jjs.size() == 0) return 1;
 
 		ret = insert_polyhedron_info(j1, j3, j2, p, jjs, pps, iv);
 		if (ret == 0) {
@@ -1955,15 +1943,6 @@ int get_closed_patch(int ipat)
 			return 0;
 		}
 
-	}
-
-	if (!check_positive_polygon(patches[ipat], patchdirs[ipat]))
-	{
-		if (ipat < 3) return 0;
-
-		polyhedron_info_real2temp(false);
-
-		return 2;
 	}
 
 	return 2;
@@ -2013,6 +1992,12 @@ void calculate_volumes(double* C_, double* R, double* N_)
 	int cntgroup = (int)((numTriple_ - 1) / cnttrip + 1);
 	int cntsub = TRIPLE_NUM_UNIT / cntgroup;
 	
+#define SET_THRESH_POINT(p)				\
+	thrpt[0] = (float)p[0];				\
+	thrpt[1] = (float)p[1];				\
+	thrpt[2] = (float)p[2];
+
+
 	for (i = 0; i < cntgroup; i++)
 	{
 		int cnttrip_r = cnttrip;
@@ -2039,9 +2024,7 @@ void calculate_volumes(double* C_, double* R, double* N_)
 			cirpatchflag = vector<int>(nn_, 0);
 			// insert initial vertices
 			if (!initial_vertices(j1, j2, j3, p)) {
-				thrpt[0] = (float)p[0];
-				thrpt[1] = (float)p[1];
-				thrpt[2] = (float)p[2];
+				SET_THRESH_POINT(p);
 				continue;
 			}
 
@@ -2060,30 +2043,59 @@ void calculate_volumes(double* C_, double* R, double* N_)
 						if (patches[m].back() != patches[m][0]) break;
 						closedcnt++;
 					}
-					//if (closedcnt == patches.size()) break;
 					break;
 				}
 				
+				// if patch direction is not determined
+				if (cirpatchflag[jcirclePatch[m]] <= 0) {
+					if (!determine_patch_direction(m)){
+						remove_patch(m);
+						continue;
+					}
+				}
+
+				polyhedron_info_real2temp(true);
+
 				int ret = get_closed_patch(m);
-				if (ret == 1) continue;
+				
 				if (ret == 0) {
 					existvolume = false;
 					break;
+				}
+
+				if (ret == 1) {
+					polyhedron_info_real2temp(false);
+					remove_patch(m);
+					continue;
+				}
+
+				if (m < 3 && patches[m][0] != patchestmp[m][0]) {
+					existvolume = false;
+					break;
+				}
+
+				// if direction of the gotten polygon is against the patch direction
+				if (!check_positive_polygon(patches[m], patchdirs[m]))
+				{
+					if (m < 3) {
+						existvolume = false;
+						break;
+					}
+
+					polyhedron_info_real2temp(false);
+					remove_patch(m);
+					continue;
 				}
 
 				m++;
 			}
 
 			if (!existvolume || closedcnt < patches.size()) {
-				thrpt[0] = (float)vertexpts[0][0];
-				thrpt[1] = (float)vertexpts[0][1];
-				thrpt[2] = (float)vertexpts[0][2];
+				SET_THRESH_POINT(vertexpts[0]);
 				continue;
 			}
 			if (patches.size() <= 3) {
-				thrpt[0] = (float)vertexpts[0][0];
-				thrpt[1] = (float)vertexpts[0][1];
-				thrpt[2] = (float)vertexpts[0][2];
+				SET_THRESH_POINT(vertexpts[0]);
 				continue;
 			}
 
@@ -2107,9 +2119,7 @@ void calculate_volumes(double* C_, double* R, double* N_)
 				bclosed = check_closed_polyhedron(edgeflag);
 			}
 			if (!bclosed) {
-				thrpt[0] = (float)vertexpts[0][0];
-				thrpt[1] = (float)vertexpts[0][1];
-				thrpt[2] = (float)vertexpts[0][2];
+				SET_THRESH_POINT(vertexpts[0]);
 				continue;
 			}
 
@@ -2121,9 +2131,7 @@ void calculate_volumes(double* C_, double* R, double* N_)
 			printf("%.4f\n", vol);
 			countVolume_++;
 
-			thrpt[0] = (float)vertexpts[0][0];
-			thrpt[1] = (float)vertexpts[0][1];
-			thrpt[2] = (float)vertexpts[0][2];
+			SET_THRESH_POINT(vertexpts[0]);
 		}
 	}
 

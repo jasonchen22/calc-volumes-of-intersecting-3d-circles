@@ -10,7 +10,7 @@ load('matlab.mat');
 
 volcnt = volumesOfIntersectingCircles3D(C, R, N, bPair, ftriname, fptsname);
 
-return;
+% return;
 % display results
 if (n_ > 1000), return; end
 
@@ -56,8 +56,8 @@ hold on
 
 if isempty(Tr), return; end
 
-disp(size(Tr,1));
-disp(size(Pr,1));
+% disp(size(Tr,1));
+% disp(size(Pr,1));
   
 figure(3); hold off
 
@@ -95,6 +95,8 @@ for ii = 1: length(IDX)
         Tr(overlapCnt<3,:) = [];
     end
 
+    strTr = cell(size(Tr,1),1);
+    ptTr = zeros(size(Tr,1),3);
     for i = 1: size(Pr,1)
         j1 = Pr(i,1); j2 = Pr(i,2);
 
@@ -112,19 +114,24 @@ for ii = 1: length(IDX)
             p1 = intersection(cc1, nn1, cc2, nn2, cc3, nn3);
 
             p = cat(1, p, p1(:)');
+            strTr{js(j)} = sprintf('%d,%d,%d',Tr(js(j),1)-1,Tr(js(j),2)-1,Tr(js(j),3)-1);
+            ptTr(js(j),:) = p1;
         end
 
         plot3(p(:,1),p(:,2),p(:,3),'-'); hold on
     end
+    text(ptTr(:,1),ptTr(:,2),ptTr(:,3),strTr);
     
     if cntTr ~= size(Tr,1)
         cntTr = size(Tr,1);
         volCnt = volCnt + 1;
+        fprintf('%d\n', ii-2);
     end
     Tr = Trr;
     Tr(IDX(1:ii),:) = [];
 end
 
+disp(' ');
 disp(volCnt);
 
 return ;
