@@ -52,7 +52,7 @@ vector<vector<int> > patches;
 vector<int> jcirclePatch;
 vector<vector<double> > patchdirs;
 vector<int> cirpatchflag;
-vector<int> vertlapcnt;
+//vector<int> vertlapcnt;
 
 vector<vector<int> > vertextristmp;
 vector<vector<double> > vertexptstmp;
@@ -60,7 +60,7 @@ vector<vector<int> > patchestmp;
 vector<int> jcirclePatchtmp;
 vector<vector<double> > patchdirstmp;
 vector<int> cirpatchflagtmp;
-vector<int> vertlapcnttmp;
+//vector<int> vertlapcnttmp;
 
 void calculate_volumes(double* C_, double* R, double* N_);
 
@@ -171,7 +171,7 @@ void polyhedron_info_real2temp(bool real2temp)
 		jcirclePatchtmp = jcirclePatch;
 		patchdirstmp = patchdirs;
 		cirpatchflagtmp = cirpatchflag;
-		vertlapcnttmp = vertlapcnt;
+		//vertlapcnttmp = vertlapcnt;
 	}
 	else {
 		vertextris = vertextristmp;
@@ -180,7 +180,7 @@ void polyhedron_info_real2temp(bool real2temp)
 		jcirclePatch = jcirclePatchtmp;
 		patchdirs = patchdirstmp;
 		cirpatchflag = cirpatchflagtmp;
-		vertlapcnt = vertlapcnttmp;
+		//vertlapcnt = vertlapcnttmp;
 	}
 }
 
@@ -318,7 +318,7 @@ int insert_vertex2patch(int ivertex, vector<int>& patch)
 	else if (cnt1 == 2) patch.insert(patch.begin(), ivertex);
 	else return 0;
 
-	vertlapcnt[ivertex]++;
+	//vertlapcnt[ivertex]++;
 
 	return 2;
 }
@@ -335,16 +335,16 @@ bool initial_vertices(int j1, int j2, int j3, double* p)
 	jcirclePatch = vector<int>(3);
 	patches = vector<vector<int> >(3);
 	patchdirs = vector<vector<double> >(3);
-	vertlapcnt = vector<int>(4);
+	//vertlapcnt = vector<int>(4);
 
 	vtrip[0] = j1; vtrip[1] = j2; vtrip[2] = j3;
 	vertextris[0] = vtrip;
 	vpt[0] = p[0]; vpt[1] = p[1]; vpt[2] = p[2];
 	vertexpts[0] = vpt;
 
-	jcirclePatch[0] = j1; patches[0].push_back(0); cirpatchflag[j1] = 1; vertlapcnt[0]++;
-	jcirclePatch[1] = j2; patches[1].push_back(0); cirpatchflag[j2] = 2; vertlapcnt[0]++;
-	jcirclePatch[2] = j3; patches[2].push_back(0); cirpatchflag[j3] = 3; vertlapcnt[0]++;
+	jcirclePatch[0] = j1; patches[0].push_back(0); cirpatchflag[j1] = 1; //vertlapcnt[0]++;
+	jcirclePatch[1] = j2; patches[1].push_back(0); cirpatchflag[j2] = 2; //vertlapcnt[0]++;
+	jcirclePatch[2] = j3; patches[2].push_back(0); cirpatchflag[j3] = 3; //vertlapcnt[0]++;
 	getRow(N_, nn_, n, j1);
 	patchdirs[0] = vector<double>(3); patchdirs[0][0] = n[0]; patchdirs[0][1] = n[1]; patchdirs[0][2] = n[2];
 	getRow(N_, nn_, n, j2);
@@ -366,8 +366,8 @@ bool initial_vertices(int j1, int j2, int j3, double* p)
 	vertextris[1] = vtrip;
 	vpt[0] = pp[0]; vpt[1] = pp[1]; vpt[2] = pp[2];
 	vertexpts[1] = vpt;
-	patches[0].push_back(1); vertlapcnt[1]++;
-	patches[1].push_back(1); vertlapcnt[1]++;
+	patches[0].push_back(1); //vertlapcnt[1]++;
+	patches[1].push_back(1); //vertlapcnt[1]++;
 
 	// j2, j3
 	ret = calc_nearest_crossPoint(j2, j3, j1, p, jj1, jj2, pp1, pp2);
@@ -383,8 +383,8 @@ bool initial_vertices(int j1, int j2, int j3, double* p)
 	vertextris[2] = vtrip;
 	vpt[0] = pp[0]; vpt[1] = pp[1]; vpt[2] = pp[2];
 	vertexpts[2] = vpt;
-	patches[1].push_back(2); vertlapcnt[2]++;
-	patches[2].push_back(2); vertlapcnt[2]++;
+	patches[1].push_back(2); //vertlapcnt[2]++;
+	patches[2].push_back(2); //vertlapcnt[2]++;
 
 	// j3, j1
 	ret = calc_nearest_crossPoint(j3, j1, j2, p, jj1, jj2, pp1, pp2);
@@ -400,8 +400,8 @@ bool initial_vertices(int j1, int j2, int j3, double* p)
 	vertextris[3] = vtrip;
 	vpt[0] = pp[0]; vpt[1] = pp[1]; vpt[2] = pp[2];
 	vertexpts[3] = vpt;
-	patches[2].push_back(3); vertlapcnt[3]++;
-	patches[0].push_back(3); vertlapcnt[3]++;
+	patches[2].push_back(3); //vertlapcnt[3]++;
+	patches[0].push_back(3); //vertlapcnt[3]++;
 
 	return true;
 }
@@ -455,7 +455,7 @@ void initial_arrange_patches()
 		if (k > 0) continue;
 
 		jcirclePatch.push_back(j);
-		patches.push_back(vector<int>(1, i)); vertlapcnt[i]++;
+		patches.push_back(vector<int>(1, i)); //vertlapcnt[i]++;
 		getRow(N_, nn_, n, j);
 		patchdirs.push_back(n);
 		cirpatchflag[j] = -(int)jcirclePatch.size();
@@ -527,7 +527,6 @@ void remove_middle_point_of_patch()
 bool check_closed_polyhedron(unsigned char* edgeflag)
 {
 	int i, j;
-	vector<vector<int> > unconnectedsides;
 
 	for (i = 0; i < patches.size(); i++) {
 		if (patches[i][0] != patches[i].back()) return false;
@@ -543,14 +542,40 @@ bool check_closed_polyhedron(unsigned char* edgeflag)
 		}
 	}
 
+	//vector<vector<int> > unconnectedsides;
+	//for (i = 0; i < patches.size(); i++) {
+	//	for (j = 0; j < patches[i].size() - 1; j++) {
+	//		if (edgeflag[patches[i][j] * vertsz + patches[i][j + 1]] > 1) continue;
+	//		vector<int> edge(2);
+	//		edge[0] = patches[i][j]; edge[1] = patches[i][j + 1];
+	//		unconnectedsides.push_back(edge);
+	//	}
+	//}
+
+	polyhedron_info_real2temp(true);
+	remove_middle_point_of_patch();
+
+	vertsz = vertextris.size();
+	unsigned char* edgeflag1 = (unsigned char*)malloc(vertsz*vertsz);
+	memset(edgeflag1, 0, vertsz*vertsz);
 	for (i = 0; i < patches.size(); i++) {
 		for (j = 0; j < patches[i].size() - 1; j++) {
-			if (edgeflag[patches[i][j] * vertsz + patches[i][j + 1]] > 1) continue;
+			edgeflag1[patches[i][j] * vertsz + patches[i][j + 1]]++;
+			edgeflag1[patches[i][j + 1] * vertsz + patches[i][j]]++;
+		}
+	}
+
+	vector<vector<int> > unconnectedsides;
+	for (i = 0; i < patches.size(); i++) {
+		for (j = 0; j < patches[i].size() - 1; j++) {
+			if (edgeflag1[patches[i][j] * vertsz + patches[i][j + 1]] > 1) continue;
 			vector<int> edge(2);
 			edge[0] = patches[i][j]; edge[1] = patches[i][j + 1];
 			unconnectedsides.push_back(edge);
 		}
 	}
+	free(edgeflag1);
+	polyhedron_info_real2temp(false);
 
 	if (unconnectedsides.size() == 0) return true;
 
@@ -678,7 +703,7 @@ int insert_polyhedron_info(int jprincir, int jcir1, int jcir2, double *p,
 	vtri[0] = jprincir; vtri[1] = jj1; vtri[2] = jj2;
 	vertextris.push_back(vtri);
 	vertexpts.push_back(pp);
-	vertlapcnt.push_back(0);
+	//vertlapcnt.push_back(0);
 
 	k = cirpatchflag[jprincir] - 1;
 	int ret = insert_vertex2patch(i, patches[k]);
@@ -686,7 +711,7 @@ int insert_polyhedron_info(int jprincir, int jcir1, int jcir2, double *p,
 
 	k = cirpatchflag[jj2];
 	if (k == 0) {
-		patches.push_back(vector<int>(1, i)); vertlapcnt[i]++;
+		patches.push_back(vector<int>(1, i)); //vertlapcnt[i]++;
 		jcirclePatch.push_back(jj2);
 		getRow(N_, nn_, n, jj2);
 		patchdirs.push_back(n);
@@ -1110,9 +1135,9 @@ bool determine_patch_direction(int ipatch)
 	insert_middle_point_in_patch(patchtmp1, jprincir);
 
 	patches[ipatch] = patchtmp1;
-	for (i = 0; i < patchtmp1.size(); i++) {
-		vertlapcnt[patchtmp1[i]]++;
-	}
+	//for (i = 0; i < patchtmp1.size(); i++) {
+	//	vertlapcnt[patchtmp1[i]]++;
+	//}
 
 	return true;
 }
@@ -1271,6 +1296,8 @@ int get_closed_patch(int ipat, unsigned char* edgeflag = NULL,
 	int j1, j2, j3, jj1, jj2;
 	double p[3], pp1[3], pp2[3], *pp;
 
+	int vertsz = vertextris.size();
+
 	int iv, iv1;
 	vector<vector<int> > jjs;
 	vector<int> jj(2);
@@ -1347,19 +1374,20 @@ int get_closed_patch(int ipat, unsigned char* edgeflag = NULL,
 
 		// 
 		if (edgeflag) {
-			int vertsz = vertextris.size();
 			vector<int> vert = vertextris[patches[ipat].back()];
 			vertex_tri(vert[0], vert[1], vert[2], j1s, j2s, j3s);
 			bool isbelong = false;
-			for (int k2 = 0; k2 < pointset.size(); k2++) {
-				int j1u, j2u, j3u;
-				vertex_tri(vertextris[pointset[k2]][0], vertextris[pointset[k2]][1], vertextris[pointset[k2]][2],
-					j1u, j2u, j3u);
-				if (j1u != j1s || j2u != j2s || j3u != j3s) continue;
-				isbelong = true;
-				if (edgeflag[iv*vertsz + pointset[k2]] <= 1) break;
+			if (iv < vertsz) {
+				for (int k2 = 0; k2 < pointset.size(); k2++) {
+					int j1u, j2u, j3u;
+					vertex_tri(vertextris[pointset[k2]][0], vertextris[pointset[k2]][1], vertextris[pointset[k2]][2],
+						j1u, j2u, j3u);
+					if (j1u != j1s || j2u != j2s || j3u != j3s) continue;
+					isbelong = true;
+					if (edgeflag[iv*vertsz + pointset[k2]] <= 1) break;
 
-				return 0;
+					return 0;
+				}
 			}
 			if (!vertexExpand && !isbelong) return 0;
 		}
@@ -1373,9 +1401,9 @@ void remove_patch(int ipatch)
 {
 	cirpatchflag[jcirclePatch[ipatch]] = 0;
 
-	for (int i = 0; i < patches[ipatch].size(); i++) {
-		vertlapcnt[patches[ipatch][i]]--;
-	}
+	//for (int i = 0; i < patches[ipatch].size(); i++) {
+	//	vertlapcnt[patches[ipatch][i]]--;
+	//}
 
 	patches.erase(patches.begin() + ipatch);
 	jcirclePatch.erase(jcirclePatch.begin() + ipatch);
@@ -1627,9 +1655,8 @@ bool plug_holes(unsigned char*& edgeflag)
 		}
 	}
 
-	for (i = 0; i < patchpts.size(); i++) {
-		if (patchpts[i].size() == patches[i].size() - 1) continue;
-
+	for (i = 0; i < patchpts.size(); i++) 
+	{
 		vector<vector<int> > edgetmps;
 		for (j = 0; j < patches[i].size() - 1; j++) {
 			if (edgeflag[patches[i][j] * vertsz + patches[i][j + 1]] != 1) continue;
@@ -1638,8 +1665,10 @@ bool plug_holes(unsigned char*& edgeflag)
 			edgetmps.push_back(tmp);
 		}
 
+		//if (patchpts[i].size() == patches[i].size() - 1) continue;
+
 		for (j = 0; j < edgetmps.size(); j++) {
-			if (patchpts[i].size() == patches[i].size() - 1) break;
+			//if (patchpts[i].size() == patches[i].size() - 1) break;
 
 			if (edgeflag[edgetmps[j][0] * vertsz + edgetmps[j][1]] != 1) continue;
 
@@ -1821,6 +1850,7 @@ void calculate_volumes(double* C_, double* R, double* N_)
 	
 		fcrosspts.read((char*)crossInfo, sizeof(stCrossInfo) * cnttrip_r);
 		for (k = 0; k < cnttrip_r; k++) {
+			//if (k > 30) break; // for debug
 			crsspt = crossInfo[k];
 			
 			ftriples.seekg(crsspt.nIdx * sizeof(int) * 3);
@@ -1856,40 +1886,43 @@ void calculate_volumes(double* C_, double* R, double* N_)
 						continue;
 					}
 				}
-
+			
 				polyhedron_info_real2temp(true);
-
+			
 				int ret = get_closed_patch(m);
 				
 				if (ret == 0) {
 					existvolume = false;
 					break;
 				}
-
+			
 				if (ret == 1) {
-					polyhedron_info_real2temp(false);
-					remove_patch(m);
-					continue;
-				}
-
-				if (m < 3 && patches[m][0] != patchestmp[m][0]) {
-					existvolume = false;
-					break;
-				}
-
-				// if direction of the gotten polygon is against the patch direction
-				if (!check_positive_polygon(patches[m], patchdirs[m]))
-				{
 					if (m < 3) {
-						existvolume = false;
-						break;
+						existvolume = false; break;
 					}
 
 					polyhedron_info_real2temp(false);
 					remove_patch(m);
 					continue;
 				}
-
+			
+				if (m < 3 && patches[m][0] != patchestmp[m][0]) {
+					existvolume = false;
+					break;
+				}
+			
+				// if direction of the gotten polygon is against the patch direction
+				if (!check_positive_polygon(patches[m], patchdirs[m]))
+				{
+					if (m < 3) {
+						existvolume = false; break;
+					}
+			
+					polyhedron_info_real2temp(false);
+					remove_patch(m);
+					continue;
+				}
+			
 				m++;
 			}
 
@@ -1905,17 +1938,19 @@ void calculate_volumes(double* C_, double* R, double* N_)
 			unsigned char* edgeflag = (unsigned char*)malloc(vertextris.size()*vertextris.size());
 
 			bool bclosed = check_closed_polyhedron(edgeflag);
-			//while (!bclosed) {
-			//	plug_holes(edgeflag);
+			while (!bclosed) {
+				plug_holes(edgeflag);
+				bclosed = check_closed_polyhedron(edgeflag);
+				if (bclosed) break;
 
-			//	bclosed = check_closed_polyhedron(edgeflag);
-			//	if (bclosed) break;
+				if (!add_patches(edgeflag)) break;
+				bclosed = check_closed_polyhedron(edgeflag);
 
-			//	if (!add_patches(edgeflag)) break;
-
-			//	bclosed = check_closed_polyhedron(edgeflag);
-			//	break; // for debug
-			//}
+				if (bclosed) break; // for debug
+				plug_holes(edgeflag);
+				bclosed = check_closed_polyhedron(edgeflag);
+				break; // for debug
+			}
 			free(edgeflag);
 
 			if (!bclosed) {
