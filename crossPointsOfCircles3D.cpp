@@ -44,6 +44,8 @@ vector<float> thrpt(3);
 
 char	fnametri[256], fnamepts[256];
 
+float xval_max, xval_min;
+
 void intersect_triples(double* C_, double* R, double* N_);
 void remove_unnecessaryInfo();
 void sort_crosspoints(double* C_, double* R, double* N_);
@@ -148,6 +150,9 @@ void intersect_triples(double* C_, double* R, double* N_)
 	numTriple_ = 0;
 	int cnttrip = 0;
 
+	xval_min = (float)1.0e13;
+	xval_max = -xval_min;
+
 	ofstream ftriples;
 
 	ftriples.open(fnametri, ios_base::out | ios_base::binary | ios_base::trunc);
@@ -248,6 +253,10 @@ void intersect_triples(double* C_, double* R, double* N_)
 
 				if (!intersectionPoint(p, c1, R[j1], n1, c2, R[j2], n2, c3, R[j3], n3))
 					continue;
+
+				// x-position distribution range of cross points
+				if ((float)p[0] < xval_min) xval_min = (float)p[0];
+				if ((float)p[0] > xval_max) xval_max = (float)p[0];
 
 				Triple[cnttrip][0] = j1;
 				Triple[cnttrip][1] = j2;
@@ -480,31 +489,49 @@ void sort_crosspoints(double* C_, double* R, double* N_)
 
 	int cnttrip = numTriple_ < TRIPLE_NUM_UNIT ? (int)numTriple_ : TRIPLE_NUM_UNIT;
 	int cntgroup = (int)((numTriple_ - 1) / cnttrip + 1);
+	
+	int cntfgroup = (int)((numTriple_ - 1) / (TRIPLE_NUM_UNIT * 2) + 1);
 
-	int cntsub = TRIPLE_NUM_UNIT / cntgroup;
-	vector<float> xvalingrp(cntgroup);
+#define TRI_NUM_TMP		(35000)
+	struct tmpStCrossInfo {
+		stCrossInfo crossInfo[TRI_NUM_TMP];
+	};
+	
+	vector<int> tmpfileNums(cntfgroup);
+	vector<float> grpbnd1(cntfgroup), grpbnd2(cntfgroup);
+	vector<int> tmpcount(cntfgroup);
+	vector<tmpStCrossInfo> tmpCrossInfo(cntfgroup);
+	vector<fstream> fcrosspttmp(cntfgroup);
 
-	vector<int> tmpcount(cntgroup);
-	vector<fstream> fcrosspttmp(cntgroup);
+	float interval = (xval_max - xval_min) / cntfgroup;
+	for (i = 0; i < cntfgroup; i++) {
+		tmpfileNums[i] = i;
+		grpbnd1[i] = interval*i;
+		grpbnd2[i] = interval*(i + 1);
+	}
+	grpbnd1[0] = -(float)1.0e13;
+	grpbnd2.back() = (float)1.0e13;
+	
 	char crosstmpfmt[256];
 	sprintf(crosstmpfmt, "%s", "crosstmp_%d.dat");
+	char fnametmp[256];
+	for (i = 0; i < cntfgroup; i++) {
+		sprintf(fnametmp, crosstmpfmt, i);
+		fcrosspttmp[i].open(fnametmp, ios_base::out | ios_base::binary | ios_base::trunc);
+		if (fcrosspttmp[i].bad()) {
+			printf("The file %s was not opened to write.\n", fnametmp);
+			ftriples.close();
+			return;
+		}
+		fcrosspttmp[i].close();
+	}
 
-	ftriples.seekg(0);
 	for (i = 0; i < cntgroup; i++)
 	{
 		int cnttrip_r = cnttrip;
 		if (i == numTriple_ / cnttrip) {
 			cnttrip_r = numTriple_ % cnttrip;
 			if (cnttrip_r == 0) break;
-		}
-
-		char fnametmp[256];
-		sprintf(fnametmp, crosstmpfmt, i);
-		fcrosspttmp[i].open(fnametmp, ios_base::out | ios_base::in | ios_base::binary | ios_base::trunc);
-		if (fcrosspttmp[i].bad()) {
-			printf("The file %s was not opened.\n", fnametmp);
-			ftriples.close();
-			return;
 		}
 
 		ftriples.read((char*)Triple, sizeof(int) * 3 * cnttrip_r);
@@ -516,35 +543,45 @@ void sort_crosspoints(double* C_, double* R, double* N_)
 			getRow(N_, nn_, n2, j2); getRow(C_, nn_, c2, j2);
 			getRow(N_, nn_, n3, j3); getRow(C_, nn_, c3, j3);
 
-			crossInfo[k].nIdx = cnttrip_r*i + k;
-			if (intersectionPoint(p, c1, R[j1], n1, c2, R[j2], n2, c3, R[j3], n3)) {
-				crossInfo[k].crossPts[0] = (float)p[0];
-				crossInfo[k].crossPts[1] = (float)p[1];
-				crossInfo[k].crossPts[2] = (float)p[2];
-			}
-			else {
-				crossInfo[k].crossPts[0] = (float)1.0e13;
-				crossInfo[k].crossPts[1] = (float)1.0e13;
-				crossInfo[k].crossPts[2] = (float)1.0e13;
-			}
-		}
-		
-		qsort(crossInfo, cnttrip_r, sizeof(stCrossInfo), compare_m);
-		if (cntsub >= cnttrip_r) {
-			xvalingrp[i] = crossInfo[cnttrip_r - 1].crossPts[0];
-		}
-		else {
-			for (k = 1; k < cntsub; k++) {
-				if (crossInfo[cntsub - k].crossPts[0]
-					< crossInfo[cntsub - k + 1].crossPts[0]) break;
-			}
-			xvalingrp[i] = crossInfo[cntsub - k].crossPts[0];
-		}
+			if (!intersectionPoint(p, c1, R[j1], n1, c2, R[j2], n2, c3, R[j3], n3)) continue;
 
-		fcrosspttmp[i].write((char*)&crossInfo[0], sizeof(stCrossInfo) * cnttrip_r);
-		tmpcount[i] = cnttrip_r;
+			m = (int)(p[0] / interval) - 1; if (m < 0) m = 0;
+			for (; m < cntfgroup; m++) {
+				if (grpbnd1[m] <= (float)p[0] && (float)p[0] < grpbnd2[m]) break;
+			}
+
+			int k1 = tmpcount[m] % TRI_NUM_TMP;
+			tmpCrossInfo[m].crossInfo[k1].nIdx = cnttrip_r*i + k;
+			tmpCrossInfo[m].crossInfo[k1].crossPts[0] = (float)p[0];
+			tmpCrossInfo[m].crossInfo[k1].crossPts[1] = (float)p[1];
+			tmpCrossInfo[m].crossInfo[k1].crossPts[2] = (float)p[2];
+
+			tmpcount[m]++;
+			if ((tmpcount[m] % TRI_NUM_TMP) == 0) {
+				sprintf(fnametmp, crosstmpfmt, m);
+				fcrosspttmp[m].open(fnametmp, ios_base::out | ios_base::binary | ios_base::app);
+				fcrosspttmp[m].write((char*)&tmpCrossInfo[m].crossInfo[0], sizeof(stCrossInfo) * TRI_NUM_TMP);
+				fcrosspttmp[m].close();
+			}
+		}
 	}
+
+	for (m = 0; m < fcrosspttmp.size(); m++) {
+		if (tmpcount[m] % TRI_NUM_TMP == 0) continue;
+
+		sprintf(fnametmp, crosstmpfmt, m);
+		fcrosspttmp[m].open(fnametmp, ios_base::out | ios_base::binary | ios_base::app);
+		fcrosspttmp[m].write((char*)&tmpCrossInfo[m].crossInfo[0], sizeof(stCrossInfo) * (tmpcount[m] % TRI_NUM_TMP));
+		fcrosspttmp[m].close();
+	}
+	tmpCrossInfo.clear();
+
 	ftriples.close();
+
+	//
+	struct candStCrossInfo {
+		stCrossInfo crossInfo[TRIPLE_NUM_UNIT];
+	};
 
 	ofstream fcrosspts;
 	sprintf(fnamepts, "%s", "crosspts.dat");
@@ -554,77 +591,103 @@ void sort_crosspoints(double* C_, double* R, double* N_)
 		return;
 	}
 
-	//ofstream fcrsptIdx;
-	//char fnamecrsptIdx[256];
-	//sprintf(fnamecrsptIdx, "%s", "crssptIdx.dat");
-	//fcrsptIdx.open(fnamecrsptIdx, ios_base::out | ios_base::binary | ios_base::trunc);
-	//if (fcrsptIdx.bad()) {
-	//	printf("The file %s was not opened.\n", fnamecrsptIdx);
-	//	return;
-	//}
-
-	vector<int> idx1ingrp(numTriple_ / cnttrip + 1, 0);
-
-	//__int64 crssCnt = 0;
-	int endCount = 0;
-	while (endCount < fcrosspttmp.size())
+	for (m = 0; m < fcrosspttmp.size(); m++)
 	{
-		float xval = (float)1.0e13;
-		for (i = 0; i < xvalingrp.size(); i++) {
-			if (idx1ingrp[i] >= tmpcount[i]) continue;
-			if (xvalingrp[i] < xval) xval = xvalingrp[i];
+		if (tmpcount[m] == 0) continue;
+
+		sprintf(fnametmp, crosstmpfmt, m);
+		fcrosspttmp[m].open(fnametmp, ios_base::in | ios_base::binary);
+		if (fcrosspttmp[m].bad()) {
+			printf("The file %s was not opened to read.\n", fnametmp);
+			return;
 		}
-		m = 0;
-		for (i = 0; i < fcrosspttmp.size(); i++) {
-			if (idx1ingrp[i] >= tmpcount[i]) continue;
 
-			fcrosspttmp[i].seekg(0);
-			fcrosspttmp[i].read((char*)crossInfo, sizeof(stCrossInfo)*tmpcount[i]);
-			for (k = idx1ingrp[i]; k < tmpcount[i]; k++) {
-				if (crossInfo[k].crossPts[0] > xval) break;
+		cnttrip = tmpcount[m] < TRIPLE_NUM_UNIT ? (int)tmpcount[m] : TRIPLE_NUM_UNIT;
+		cntgroup = (int)((tmpcount[m] - 1) / cnttrip + 1);
+		int cntsub = TRIPLE_NUM_UNIT / cntgroup;
+		vector<float> xvalingrp(cntgroup);
+		vector<int> tmpcnt(cntgroup);
+
+		vector<candStCrossInfo> candCrossInfo(cntgroup);
+		for (i = 0; i < cntgroup; i++) {
+			int cnttrip_r = cnttrip;
+			if (i == tmpcount[m] / cnttrip) {
+				cnttrip_r = tmpcount[m] % cnttrip;
+				if (cnttrip_r == 0) break;
 			}
-			int ksub = k;
 
-			memcpy(&crossInfo1[m], &crossInfo[idx1ingrp[i]],
-				sizeof(stCrossInfo)*(ksub - idx1ingrp[i]));
-			m += ksub - idx1ingrp[i];
+			fcrosspttmp[m].read((char*)candCrossInfo[i].crossInfo, sizeof(stCrossInfo)*cnttrip_r);
 			
-			idx1ingrp[i] = ksub;
-			if (idx1ingrp[i] >= tmpcount[i]) endCount++;
-	
-			if (ksub + cntsub >= tmpcount[i]) {
-				xvalingrp[i] = crossInfo[tmpcount[i] - 1].crossPts[0];
+			qsort(candCrossInfo[i].crossInfo, cnttrip_r, sizeof(stCrossInfo), compare_m);
+			if (cntsub >= cnttrip_r) {
+				xvalingrp[i] = candCrossInfo[i].crossInfo[cnttrip_r - 1].crossPts[0];
 			}
 			else {
 				for (k = 1; k < cntsub; k++) {
-					if (crossInfo[ksub+cntsub - k].crossPts[0]
-						< crossInfo[ksub+cntsub - k + 1].crossPts[0]) break;
+					if (candCrossInfo[i].crossInfo[cntsub - k].crossPts[0]
+						< candCrossInfo[i].crossInfo[cntsub - k + 1].crossPts[0]) break;
 				}
-				xvalingrp[i] = crossInfo[ksub+cntsub - k].crossPts[0];
+				xvalingrp[i] = candCrossInfo[i].crossInfo[cntsub - k].crossPts[0];
 			}
+
+			tmpcnt[i] = cnttrip_r;
 		}
 
-		qsort(crossInfo1, m, sizeof(stCrossInfo), compare_m);
-		fcrosspts.write((char*)&crossInfo1[0], sizeof(stCrossInfo) * m);
+		if (cntgroup == 1) {
+			fcrosspts.write((char*)&candCrossInfo[0].crossInfo[0], sizeof(stCrossInfo) * tmpcnt[0]);
+			fcrosspttmp[m].close();
+			continue;
+		}
 
-		//for (i = 0; i < m; i++) {
-		//	__int64 crssidx = crssCnt + i;
-		//	fcrsptIdx.seekp(crossInfo1[i].nIdx * sizeof(__int64));
-		//	fcrsptIdx.write((char*)&crssidx, sizeof(__int64));
-		//}
+		vector<int> idx1ingrp(cntgroup, 0);
+		int endCount = 0;
+		while (endCount < candCrossInfo.size())
+		{
+			float xval = (float)1.0e13;
+			for (i = 0; i < xvalingrp.size(); i++) {
+				if (idx1ingrp[i] >= tmpcnt[i]) continue;
+				if (xvalingrp[i] < xval) xval = xvalingrp[i];
+			}
+			int m1 = 0;
+			for (i = 0; i < candCrossInfo.size(); i++) {
+				if (idx1ingrp[i] >= tmpcnt[i]) continue;
 
-		//crssCnt += m;
+				for (k = idx1ingrp[i]; k < tmpcnt[i]; k++) {
+					if (candCrossInfo[i].crossInfo[k].crossPts[0] > xval) break;
+				}
+				int ksub = k;
+
+				memcpy(&crossInfo1[m1], &candCrossInfo[i].crossInfo[idx1ingrp[i]],
+					sizeof(stCrossInfo)*(ksub - idx1ingrp[i]));
+				m1 += ksub - idx1ingrp[i];
+
+				idx1ingrp[i] = ksub;
+				if (idx1ingrp[i] >= tmpcnt[i]) endCount++;
+
+				if (ksub + cntsub >= tmpcnt[i]) {
+					xvalingrp[i] = candCrossInfo[i].crossInfo[tmpcnt[i] - 1].crossPts[0];
+				}
+				else {
+					for (k = 1; k < cntsub; k++) {
+						if (candCrossInfo[i].crossInfo[ksub + cntsub - k].crossPts[0]
+							< candCrossInfo[i].crossInfo[ksub + cntsub - k + 1].crossPts[0]) break;
+					}
+					xvalingrp[i] = candCrossInfo[i].crossInfo[ksub + cntsub - k].crossPts[0];
+				}
+			}
+
+			qsort(crossInfo1, m1, sizeof(stCrossInfo), compare_m);
+			fcrosspts.write((char*)&crossInfo1[0], sizeof(stCrossInfo) * m1);
+		}
+
+		fcrosspttmp[m].close();
 	}
 
 	fcrosspts.close();
-	//fcrsptIdx.close();
-
-	for (i = 0; i < fcrosspttmp.size(); i++) fcrosspttmp[i].close();
 
 	for (i = 0; i < fcrosspttmp.size(); i++) {
 		char fnametmp[256];
 		sprintf(fnametmp, crosstmpfmt, i);
 		remove(fnametmp);
 	}
-
 }
