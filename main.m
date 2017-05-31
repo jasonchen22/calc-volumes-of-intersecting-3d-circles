@@ -3,7 +3,7 @@
 
 dimensionsofanalyses = 50; % the centers of the circles will have coordinates 
                            % between x= 0 - 50m, y= 0 - 50m, z= 0 - 50m
-numberofcircles =  1000; % 100000;
+numberofcircles =  10000; % 100000;
 meanradiusofcircles = 5; % 5;
 
 radiiofcircles = exprnd(meanradiusofcircles, numberofcircles,1); %radii of all circles
@@ -22,9 +22,10 @@ N1 = [xnormalvector(:) ynormalvector(:) znormalvector(:)];
 N1 = N1 ./ repmat(sqrt(dot(N1,N1,2)),1,3);
 
 [R,idx] = sort(R1,'ascend');
-% [R,idx] = sort(R1,'descend');
 C = C1(idx,:);
 N = N1(idx,:);
 
-bPair = crossPointsOfCircles3D(C, R, N);
+[bPair, ftriname, fptsname] = crossPointsOfCircles3D(C, R, N);
+
+volcnt = volumesOfIntersectingCircles3D(C, R, N, bPair, ftriname, fptsname);
 
