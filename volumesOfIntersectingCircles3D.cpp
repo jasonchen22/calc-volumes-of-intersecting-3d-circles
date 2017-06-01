@@ -33,12 +33,8 @@ stCrossInfo crossInfo1[TRIPLE_NUM_UNIT];
 double *C_, *R, *N_;
 
 int		nn_;
-int		Triple[TRIPLE_NUM_UNIT][3];
-int		Triple1[TRIPLE_NUM_UNIT][3];
-int		Pair_[TRIPLE_NUM_UNIT][2];
 
 __int64 numTriple_;
-__int64 numPair_;
 __int64 countVolume_;
 
 unsigned char* bpair_;
@@ -52,7 +48,6 @@ vector<vector<int> > patches;
 vector<int> jcirclePatch;
 vector<vector<double> > patchdirs;
 vector<int> cirpatchflag;
-//vector<int> vertlapcnt;
 
 vector<vector<int> > vertextristmp;
 vector<vector<double> > vertexptstmp;
@@ -60,7 +55,6 @@ vector<vector<int> > patchestmp;
 vector<int> jcirclePatchtmp;
 vector<vector<double> > patchdirstmp;
 vector<int> cirpatchflagtmp;
-//vector<int> vertlapcnttmp;
 
 void calculate_volumes(double* C_, double* R, double* N_);
 
@@ -171,7 +165,6 @@ void polyhedron_info_real2temp(bool real2temp)
 		jcirclePatchtmp = jcirclePatch;
 		patchdirstmp = patchdirs;
 		cirpatchflagtmp = cirpatchflag;
-		//vertlapcnttmp = vertlapcnt;
 	}
 	else {
 		vertextris = vertextristmp;
@@ -180,7 +173,6 @@ void polyhedron_info_real2temp(bool real2temp)
 		jcirclePatch = jcirclePatchtmp;
 		patchdirs = patchdirstmp;
 		cirpatchflag = cirpatchflagtmp;
-		//vertlapcnt = vertlapcnttmp;
 	}
 }
 
@@ -300,7 +292,6 @@ int insert_vertex2patch(int ivertex, vector<int>& patch)
 	if (cnt1 == 3) {
 		if (cnt2 == 2) {
 			patch.push_back(ivertex);
-			//vertlapcnt[ivertex]++;
 			return 1;
 		}
 		else { return 0; }
@@ -308,7 +299,6 @@ int insert_vertex2patch(int ivertex, vector<int>& patch)
 	if (cnt2 == 3) {
 		if (cnt1 == 2) {
 			patch.insert(patch.begin(), ivertex);
-			//vertlapcnt[ivertex]++;
 			return 1;
 		}
 		else { return 0; }
@@ -317,8 +307,6 @@ int insert_vertex2patch(int ivertex, vector<int>& patch)
 	if (cnt2 == 2) patch.push_back(ivertex); 
 	else if (cnt1 == 2) patch.insert(patch.begin(), ivertex);
 	else return 0;
-
-	//vertlapcnt[ivertex]++;
 
 	return 2;
 }
@@ -335,16 +323,15 @@ bool initial_vertices(int j1, int j2, int j3, double* p)
 	jcirclePatch = vector<int>(3);
 	patches = vector<vector<int> >(3);
 	patchdirs = vector<vector<double> >(3);
-	//vertlapcnt = vector<int>(4);
 
 	vtrip[0] = j1; vtrip[1] = j2; vtrip[2] = j3;
 	vertextris[0] = vtrip;
 	vpt[0] = p[0]; vpt[1] = p[1]; vpt[2] = p[2];
 	vertexpts[0] = vpt;
 
-	jcirclePatch[0] = j1; patches[0].push_back(0); cirpatchflag[j1] = 1; //vertlapcnt[0]++;
-	jcirclePatch[1] = j2; patches[1].push_back(0); cirpatchflag[j2] = 2; //vertlapcnt[0]++;
-	jcirclePatch[2] = j3; patches[2].push_back(0); cirpatchflag[j3] = 3; //vertlapcnt[0]++;
+	jcirclePatch[0] = j1; patches[0].push_back(0); cirpatchflag[j1] = 1;
+	jcirclePatch[1] = j2; patches[1].push_back(0); cirpatchflag[j2] = 2;
+	jcirclePatch[2] = j3; patches[2].push_back(0); cirpatchflag[j3] = 3;
 	getRow(N_, nn_, n, j1);
 	patchdirs[0] = vector<double>(3); patchdirs[0][0] = n[0]; patchdirs[0][1] = n[1]; patchdirs[0][2] = n[2];
 	getRow(N_, nn_, n, j2);
@@ -366,8 +353,8 @@ bool initial_vertices(int j1, int j2, int j3, double* p)
 	vertextris[1] = vtrip;
 	vpt[0] = pp[0]; vpt[1] = pp[1]; vpt[2] = pp[2];
 	vertexpts[1] = vpt;
-	patches[0].push_back(1); //vertlapcnt[1]++;
-	patches[1].push_back(1); //vertlapcnt[1]++;
+	patches[0].push_back(1);
+	patches[1].push_back(1);
 
 	// j2, j3
 	ret = calc_nearest_crossPoint(j2, j3, j1, p, jj1, jj2, pp1, pp2);
@@ -383,8 +370,8 @@ bool initial_vertices(int j1, int j2, int j3, double* p)
 	vertextris[2] = vtrip;
 	vpt[0] = pp[0]; vpt[1] = pp[1]; vpt[2] = pp[2];
 	vertexpts[2] = vpt;
-	patches[1].push_back(2); //vertlapcnt[2]++;
-	patches[2].push_back(2); //vertlapcnt[2]++;
+	patches[1].push_back(2);
+	patches[2].push_back(2);
 
 	// j3, j1
 	ret = calc_nearest_crossPoint(j3, j1, j2, p, jj1, jj2, pp1, pp2);
@@ -400,8 +387,8 @@ bool initial_vertices(int j1, int j2, int j3, double* p)
 	vertextris[3] = vtrip;
 	vpt[0] = pp[0]; vpt[1] = pp[1]; vpt[2] = pp[2];
 	vertexpts[3] = vpt;
-	patches[2].push_back(3); //vertlapcnt[3]++;
-	patches[0].push_back(3); //vertlapcnt[3]++;
+	patches[2].push_back(3);
+	patches[0].push_back(3);
 
 	return true;
 }
@@ -455,7 +442,7 @@ void initial_arrange_patches()
 		if (k > 0) continue;
 
 		jcirclePatch.push_back(j);
-		patches.push_back(vector<int>(1, i)); //vertlapcnt[i]++;
+		patches.push_back(vector<int>(1, i));
 		getRow(N_, nn_, n, j);
 		patchdirs.push_back(n);
 		cirpatchflag[j] = -(int)jcirclePatch.size();
@@ -696,7 +683,6 @@ int insert_polyhedron_info(int jprincir, int jcir1, int jcir2, double *p,
 	vtri[0] = jprincir; vtri[1] = jj1; vtri[2] = jj2;
 	vertextris.push_back(vtri);
 	vertexpts.push_back(pp);
-	//vertlapcnt.push_back(0);
 
 	k = cirpatchflag[jprincir] - 1;
 	int ret = insert_vertex2patch(i, patches[k]);
@@ -704,7 +690,7 @@ int insert_polyhedron_info(int jprincir, int jcir1, int jcir2, double *p,
 
 	k = cirpatchflag[jj2];
 	if (k == 0) {
-		patches.push_back(vector<int>(1, i)); //vertlapcnt[i]++;
+		patches.push_back(vector<int>(1, i));
 		jcirclePatch.push_back(jj2);
 		getRow(N_, nn_, n, jj2);
 		patchdirs.push_back(n);
@@ -1131,9 +1117,6 @@ bool determine_patch_direction(int ipatch)
 	insert_middle_point_in_patch(patchtmp1, jprincir);
 
 	patches[ipatch] = patchtmp1;
-	//for (i = 0; i < patchtmp1.size(); i++) {
-	//	vertlapcnt[patchtmp1[i]]++;
-	//}
 
 	return true;
 }
@@ -1346,11 +1329,6 @@ int get_closed_patch(int ipat, unsigned char* edgeflag = NULL,
 void remove_patch(int ipatch)
 {
 	cirpatchflag[jcirclePatch[ipatch]] = 0;
-
-	//for (int i = 0; i < patches[ipatch].size(); i++) {
-	//	vertlapcnt[patches[ipatch][i]]--;
-	//}
-
 	patches.erase(patches.begin() + ipatch);
 	jcirclePatch.erase(jcirclePatch.begin() + ipatch);
 	patchdirs.erase(patchdirs.begin() + ipatch);
@@ -1526,7 +1504,7 @@ bool add_patches(unsigned char*& edgeflag)
 			for (k = 0; k < 3; k++) {
 				if (cirpatchflag[tri[k]] != 0) continue;
 
-				patches.push_back(vector<int>(1, vertid)); //vertlapcnt[i]++;
+				patches.push_back(vector<int>(1, vertid));
 				jcirclePatch.push_back(tri[k]);
 				getRow(N_, nn_, n, tri[k]);
 				patchdirs.push_back(n);
@@ -1742,8 +1720,6 @@ double calculate_one_volume()
 
 void calculate_volumes(double* C_, double* R, double* N_)
 {
-	//if (numTriple_ < 4) return;
-
 	int i, k, m;
 	int j1, j2, j3;
 	double p[3];
