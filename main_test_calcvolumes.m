@@ -118,14 +118,14 @@ for ii = 1: length(IDX)
             ptTr(js(j),:) = p1;
         end
 
-        plot3(p(:,1),p(:,2),p(:,3),'-'); hold on
+%         plot3(p(:,1),p(:,2),p(:,3),'-'); hold on
     end
     text(ptTr(:,1),ptTr(:,2),ptTr(:,3),strTr);
     
     if cntTr ~= size(Tr,1)
         cntTr = size(Tr,1);
         volCnt = volCnt + 1;
-        fprintf('%d\n', ii-2);
+%         fprintf('%d\n', ii-2);
     end
     Tr = Trr;
     Tr(IDX(1:ii),:) = [];

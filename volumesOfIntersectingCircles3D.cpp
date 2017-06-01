@@ -1867,13 +1867,13 @@ void calculate_volumes(double* C_, double* R, double* N_)
 
 			bool bclosed = check_closed_polyhedron(edgeflag);
 			m = 0;
-			while (!bclosed && m < 3) {
+			while (!bclosed && m < 2) {
 				plug_holes(edgeflag);
 				bclosed = check_closed_polyhedron(edgeflag);
 				if (bclosed) break;
 
-				//if (!add_patches(edgeflag)) break;
-				//bclosed = check_closed_polyhedron(edgeflag);
+				if (!add_patches(edgeflag)) break;
+				bclosed = check_closed_polyhedron(edgeflag);
 
 				m++;
 			}

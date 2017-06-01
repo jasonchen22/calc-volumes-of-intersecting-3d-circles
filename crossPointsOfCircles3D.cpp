@@ -599,9 +599,12 @@ void sort_crosspoints(double* C_, double* R, double* N_)
 
 	for (m = 0; m < fcrosspttmp.size(); m++)
 	{
-		if (tmpcount[m] == 0) continue;
-
 		sprintf(fnametmp, crosstmpfmt, m);
+
+		if (tmpcount[m] == 0) {
+			remove(fnametmp); continue;
+		}
+
 		fcrosspttmp[m].open(fnametmp, ios_base::in | ios_base::binary);
 		if (fcrosspttmp[m].bad()) {
 			printf("The file %s was not opened to read.\n", fnametmp);
@@ -642,6 +645,7 @@ void sort_crosspoints(double* C_, double* R, double* N_)
 		if (cntgroup == 1) {
 			fcrosspts.write((char*)&candCrossInfo[0].crossInfo[0], sizeof(stCrossInfo) * tmpcnt[0]);
 			fcrosspttmp[m].close();
+			remove(fnametmp);
 			continue;
 		}
 
@@ -687,13 +691,8 @@ void sort_crosspoints(double* C_, double* R, double* N_)
 		}
 
 		fcrosspttmp[m].close();
+		remove(fnametmp);
 	}
 
 	fcrosspts.close();
-
-	for (i = 0; i < fcrosspttmp.size(); i++) {
-		char fnametmp[256];
-		sprintf(fnametmp, crosstmpfmt, i);
-		remove(fnametmp);
-	}
 }
