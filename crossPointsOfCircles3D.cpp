@@ -200,18 +200,16 @@ void intersect_triples(double* C_, double* R, double* N_)
 			if (flag) {
 				if (!isPossibleCrossCircles(c1, R[j1], n1, c2, R[j2], n2))
 					continue;
-				if (R[j1] <= R[j2]) {
+				if (R[j1] < R[j2]) {
 					if (!cross_circles(c1, R[j1], u1, v1, c2, R[j2], n2, p)) continue;
 				}
 				else {
 					get_uv(n2, R[j2], u2, v2);
 					if (!cross_circles(c2, R[j2], u2, v2, c1, R[j1], n1, p)) continue;
 				}
-					
 			}
 
-			if (!flag || R[j1] <= R[j2])
-				get_uv(n2, R[j2], u2, v2); ///
+			if (!flag || R[j1] < R[j2]) get_uv(n2, R[j2], u2, v2);
 
 			int existTrip = 0;
 			k = i;
@@ -230,7 +228,7 @@ void intersect_triples(double* C_, double* R, double* N_)
 				if (flag) {
 					if (!isPossibleCrossCircles(c1, R[j1], n1, c3, R[j3], n3))
 						continue;
-					if (R[j1] <= R[j3]) {
+					if (R[j1] < R[j3]) {
 						if (!cross_circles(c1, R[j1], u1, v1, c3, R[j3], n3, p)) continue;
 					}
 					else {
@@ -243,11 +241,11 @@ void intersect_triples(double* C_, double* R, double* N_)
 
 				if (!isPossibleCrossCircles(c2, R[j2], n2, c3, R[j3], n3))
 					continue;
-				if (R[j2] <= R[j3]) {
+				if (R[j2] < R[j3]) {
 					if (!cross_circles(c2, R[j2], u2, v2, c3, R[j3], n3, p)) continue;
 				}
 				else {
-					if (!flag || R[j1] <= R[j3]) get_uv(n3, R[j3], u3, v3);
+					if (!flag || R[j1] < R[j3]) get_uv(n3, R[j3], u3, v3);
 					if (!cross_circles(c3, R[j3], u3, v3, c2, R[j2], n2, p)) continue;
 				}
 
@@ -340,7 +338,7 @@ void remove_unnecessaryInfo()
 	sprintf(fnametri0, "%s", fnametri);
 	sprintf(fnametri1, "%sm", fnametri);
 
-	int cnttrip, cnttrip1, cntpair;
+	int cnttrip, cnttrip1;
 	__int64 numTriple_1 = 0;
 
 	int i, k, m;
@@ -505,8 +503,8 @@ void sort_crosspoints(double* C_, double* R, double* N_)
 
 	for (i = 0; i < cntfgroup; i++) {
 		tmpfileNums[i] = i;
-		grpbnd1[i] = xval_min + (xval_max - xval_min)*i / cntfgroup;
-		grpbnd2[i] = xval_min + (xval_max - xval_min)*(i + 1) / cntfgroup;
+		grpbnd1[i] = (float)(xval_min + (xval_max - xval_min)*i / cntfgroup);
+		grpbnd2[i] = (float)(xval_min + (xval_max - xval_min)*(i + 1) / cntfgroup);
 	}
 	grpbnd1[0] = -(float)1.0e13;
 	grpbnd2.back() = (float)1.0e13;

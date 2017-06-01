@@ -1240,7 +1240,7 @@ int get_closed_patch(int ipat, unsigned char* edgeflag = NULL,
 	vector<int> pointset = vector<int>(0), bool vertexExpand = true)
 {
 	int j1, j2, j3, jj1, jj2;
-	double p[3], pp1[3], pp2[3], *pp;
+	double p[3], pp1[3], pp2[3];
 
 	int vertsz = vertextris.size();
 
@@ -1366,8 +1366,7 @@ bool add_patches(unsigned char*& edgeflag)
 	int iv, iv1;
 	vector<int> tri;
 	vector<double> n(3);
-	double p[3], pp1[3], pp2[3];
-	int j1, j2, j3, jj1, jj2;
+	double pp1[3], pp2[3];
 
 	vector<vector<int> > patchpts(patches.size());
 	vector<int> vpatch;
@@ -1586,10 +1585,7 @@ bool add_patches(unsigned char*& edgeflag)
 
 bool plug_holes(unsigned char*& edgeflag)
 {
-	double p[3], pp1[3], pp2[3];
-	int j1, j2, j3, jj1, jj2;
 	int i, j, k, m, ipat;
-	int iv, iv1;
 	vector<vector<int> > patchpts(patches.size());
 	vector<int> vpatch;
 
@@ -1749,10 +1745,8 @@ void calculate_volumes(double* C_, double* R, double* N_)
 	//if (numTriple_ < 4) return;
 
 	int i, k, m;
-	int j1, j2, j3, jj1, jj2;
-	double p[3], pp1[3], pp2[3], *pp;
-	double u1[3], u2[3], u3[3];
-	double v1[3], v2[3], v3[3];
+	int j1, j2, j3;
+	double p[3];
 	double c1[3], c2[3], c3[3];
 	double n1[3], n2[3], n3[3];
 	stCrossInfo crsspt;
@@ -1762,7 +1756,7 @@ void calculate_volumes(double* C_, double* R, double* N_)
 
 	countVolume_ = 0;
 
-	thrpt[0] = -1.0e13; thrpt[1] = -1.0e13; thrpt[2] = -1.0e13;
+	thrpt[0] = -(float)1.0e13; thrpt[1] = -(float)1.0e13; thrpt[2] = -(float)1.0e13;
 
 	// open triple data to read
 	ifstream fcrosspts;
