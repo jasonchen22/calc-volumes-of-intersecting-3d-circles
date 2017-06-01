@@ -44,7 +44,7 @@ vector<float> thrpt(3);
 
 char	fnametri[256], fnamepts[256];
 
-float xval_max, xval_min;
+double xval_max, xval_min;
 
 void intersect_triples(double* C_, double* R, double* N_);
 void remove_unnecessaryInfo();
@@ -150,7 +150,7 @@ void intersect_triples(double* C_, double* R, double* N_)
 	numTriple_ = 0;
 	int cnttrip = 0;
 
-	xval_min = (float)1.0e13;
+	xval_min = 1.0e13;
 	xval_max = -xval_min;
 
 	ofstream ftriples;
@@ -255,8 +255,8 @@ void intersect_triples(double* C_, double* R, double* N_)
 					continue;
 
 				// x-position distribution range of cross points
-				if ((float)p[0] < xval_min) xval_min = (float)p[0];
-				if ((float)p[0] > xval_max) xval_max = (float)p[0];
+				if (p[0] < xval_min) xval_min = p[0];
+				if (p[0] > xval_max) xval_max = p[0];
 
 				Triple[cnttrip][0] = j1;
 				Triple[cnttrip][1] = j2;
@@ -283,7 +283,7 @@ void intersect_triples(double* C_, double* R, double* N_)
 				cnttrip++;
 				numTriple_++;
 				if (cnttrip >= TRIPLE_NUM_UNIT) {
-					printf("numTriple is over! %d-%d-%d\n", j1, j2, j3);
+					//printf("numTriple is over! %d-%d-%d\n", j1, j2, j3);
 					ftriples.write((char*)&Triple[0][0], sizeof(int) * 3 * cnttrip);
 					cnttrip = 0;
 				}
@@ -490,7 +490,7 @@ void sort_crosspoints(double* C_, double* R, double* N_)
 	int cnttrip = numTriple_ < TRIPLE_NUM_UNIT ? (int)numTriple_ : TRIPLE_NUM_UNIT;
 	int cntgroup = (int)((numTriple_ - 1) / cnttrip + 1);
 	
-	int cntfgroup = (int)((numTriple_ - 1) / (TRIPLE_NUM_UNIT * 2) + 1);
+	int cntfgroup = (int)((numTriple_ - 1) / (TRIPLE_NUM_UNIT / 2) + 1);
 
 #define TRI_NUM_TMP		(35000)
 	struct tmpStCrossInfo {
@@ -503,11 +503,10 @@ void sort_crosspoints(double* C_, double* R, double* N_)
 	vector<tmpStCrossInfo> tmpCrossInfo(cntfgroup);
 	vector<fstream> fcrosspttmp(cntfgroup);
 
-	float interval = (xval_max - xval_min) / cntfgroup;
 	for (i = 0; i < cntfgroup; i++) {
 		tmpfileNums[i] = i;
-		grpbnd1[i] = interval*i;
-		grpbnd2[i] = interval*(i + 1);
+		grpbnd1[i] = xval_min + (xval_max - xval_min)*i / cntfgroup;
+		grpbnd2[i] = xval_min + (xval_max - xval_min)*(i + 1) / cntfgroup;
 	}
 	grpbnd1[0] = -(float)1.0e13;
 	grpbnd2.back() = (float)1.0e13;
@@ -545,9 +544,18 @@ void sort_crosspoints(double* C_, double* R, double* N_)
 
 			if (!intersectionPoint(p, c1, R[j1], n1, c2, R[j2], n2, c3, R[j3], n3)) continue;
 
-			m = (int)(p[0] / interval) - 1; if (m < 0) m = 0;
-			for (; m < cntfgroup; m++) {
-				if (grpbnd1[m] <= (float)p[0] && (float)p[0] < grpbnd2[m]) break;
+			int m1 = (int)((p[0] - xval_min)*cntfgroup / (xval_max - xval_min));
+			if (m1 < 0) m1 = 0; if (m1 >= cntfgroup) m1 = cntfgroup - 1;
+			if (grpbnd1[m1] <= (float)p[0] && (float)p[0] < grpbnd2[m1]) {
+				m = m1;
+			}
+			else {
+				m = m1 - 1; if (m < 0) m = 0;
+				for (; m < m1 + 1; m++) {
+					if (m >= cntfgroup) break;
+					if (grpbnd1[m] <= (float)p[0] && (float)p[0] < grpbnd2[m]) break;
+				}
+				if (m == cntfgroup) continue;
 			}
 
 			int k1 = tmpcount[m] % TRI_NUM_TMP;

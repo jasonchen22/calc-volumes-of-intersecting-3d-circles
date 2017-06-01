@@ -3,7 +3,7 @@
 
 dimensionsofanalyses = 50; % the centers of the circles will have coordinates 
                            % between x= 0 - 50m, y= 0 - 50m, z= 0 - 50m
-numberofcircles =  10000; % 100000;
+numberofcircles =  1000; % 100000;
 meanradiusofcircles = 5; % 5;
 
 radiiofcircles = exprnd(meanradiusofcircles, numberofcircles,1); %radii of all circles
