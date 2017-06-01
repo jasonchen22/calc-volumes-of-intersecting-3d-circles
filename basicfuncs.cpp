@@ -151,16 +151,14 @@ bool cross_circles(double *c1, double r1, double *u, double *v,
 	if (d < 0) return false;
 
 #define CHECK_CROSS()								\
-													\
 	p[0] = c1[0] + u[0] * t1 + v[0] * t2;			\
 	p[1] = c1[1] + u[1] * t1 + v[1] * t2;			\
 	p[2] = c1[2] + u[2] * t1 + v[2] * t2;			\
 	minus_(p, c2, c);								\
-	if (abs(dot(n2, c)) < 1e-12) {					\
+	if (abs(dot(n2, c)) < 1e-10) {					\
 		d_ = dot(c, c);								\
-		if (d_ < r2*r2) return true;				\
-	}												\
-
+		if ((float)d_ <= r2*r2) return true;			\
+	}
 
 	t1 = (-a2 + sqrt(d)) / a1;
 	if (abs(t1) <= 1) {
@@ -258,7 +256,7 @@ bool intersectionPoint(double* p,
 	memcpy(&D_[2][0], n3, sizeof(double) * 3);
 
 	d = det((double*)D_);
-	if (abs(d) < 1e-15) return false;
+	if (abs(d) < 1e-10) return false;
 
 	b1 = dot(n1, c1);
 	b2 = dot(n2, c2);
